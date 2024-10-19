@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luchando contra la resistencia microbiana a antibióticos con nanopartículas de plata</title>
+    <title>Bacterias y Pastillas Verdes</title>
     <style>
         body {
             background-color: #00a99d; /* Color azulito para el fondo fuera del círculo */
@@ -26,14 +26,14 @@
             overflow: hidden; /* Para ocultar lo que sale del círculo */
         }
 
-        .circle {
+        .bacteria {
             position: absolute;
             width: 50px; /* Ajusta el tamaño según lo necesites */
             height: 50px; /* Ajusta el tamaño según lo necesites */
             background: url('./bacteria.png') no-repeat center center; /* Ruta al archivo SVG en la carpeta padre */
             background-size: contain; /* Ajusta el tamaño del SVG al contenedor */
             transform: translate(-50%, -50%);
-            z-index: 2; /* Asegurarse de que las bolitas estén por encima del fondo */
+            z-index: 2; /* Asegurarse de que las bacterias estén por encima del fondo */
         }
 
         .ring {
@@ -49,11 +49,35 @@
             z-index: 2; /* Asegurarse de que el anillo esté por encima del fondo */
         }
 
+        .pink-ring {
+            position: absolute;
+            width: 40px; /* Tamaño del halo rosa */
+            height: 40px; /* Tamaño del halo rosa */
+            border: 2px solid #ff7daf; /* Color del halo rosa */
+            background-color: transparent;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 10s ease-in-out; /* Transición para el desvanecimiento */
+            opacity: 1; /* Comenzar completamente visible */
+            z-index: 2; /* Asegurarse de que el anillo esté por encima del fondo */
+        }
+
+
         .particle {
             position: absolute;
             width: 5px;
             height: 5px;
             background-color: silver;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: 3; /* Asegurarse de que las partículas estén por encima del fondo */
+        }
+
+        .pink-particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #ff7daf; /* Color de las partículas rosas */
             border-radius: 50%;
             opacity: 0.8;
             z-index: 3; /* Asegurarse de que las partículas estén por encima del fondo */
@@ -75,75 +99,105 @@
             background-color: #b0b0b0; /* Un tono más oscuro para el efecto hover */
         }
 
-        .green-point {
+        .green-pill {
             position: absolute;
-            width: 30px; /* Tamaño de los puntos verdes */
-            height: 30px; /* Tamaño de los puntos verdes */
+            width: 30px; /* Tamaño de las pastillas verdes */
+            height: 30px; /* Tamaño de las pastillas verdes */
             background: url('./Argentum_v00.svg') no-repeat center center; /* Ruta al archivo SVG en la carpeta padre */
             background-size: contain; /* Ajusta el tamaño del SVG al contenedor */
             transform: translate(-50%, -50%);
-            z-index: 2; /* Asegurarse de que los puntos verdes estén por encima del fondo */
+            z-index: 2; /* Asegurarse de que las pastillas estén por encima del fondo */
+        }
+
+        #warning-message {
+            position: absolute;
+            top: 10px;
+            background-color: #ffdddd;
+            padding: 10px;
+            border: 1px solid red;
+            color: red;
+            font-size: 16px;
+            border-radius: 5px;
+            display: none; /* Oculto inicialmente */
+            z-index: 5;
         }
     </style>
 </head>
 <body>
+    <div id="warning-message">¡No te pases con los antibióticos!</div>
     <button id="generate10">¡Ataque bacteriano!</button>
     <div id="container"></div>
 
     <script>
         const container = document.getElementById('container');
-        const maxBolitas = 15;
-        const bolitas = [];
-        const greenPoints = [];
-        const bolitaSize = 50; // Tamaño de las bolitas (50px)
+        const maxBacterias = 25;
+        const bacterias = [];
+        const greenPills = [];
+        const bacteriaSize = 50; // Tamaño de las bacterias (50px)
         const speed = 2;
 
-        // Función para crear una bolita
-        function crearBolita() {
-            if (bolitas.length >= maxBolitas) return;
+        // Función para mostrar el mensaje de advertencia
+        function mostrarMensajeAdvertencia() {
+            const mensaje = document.getElementById('warning-message');
+            mensaje.style.display = 'block'; // Mostrar mensaje
+            setTimeout(() => {
+                mensaje.style.display = 'none'; // Ocultar después de 2 segundos
+            }, 2000); // Mostrar el mensaje durante 2 segundos
+        }
 
-            const circle = document.createElement('div');
-            circle.classList.add('circle');
+        // Función para crear una bacteria
+        function crearBacteria() {
+            if (bacterias.length >= maxBacterias) return;
+
+            const bacteria = document.createElement('div');
+            bacteria.classList.add('bacteria');
             const containerRadius = container.clientWidth / 2;
             let angleRandom = Math.random() * 2 * Math.PI;
-            let radiusRandom = Math.random() * (containerRadius - bolitaSize / 2);
+            let radiusRandom = Math.random() * (containerRadius - bacteriaSize / 2);
             let posX = container.clientWidth / 2 + radiusRandom * Math.cos(angleRandom);
             let posY = container.clientHeight / 2 + radiusRandom * Math.sin(angleRandom);
             let angle = Math.random() * 2 * Math.PI;
 
-            container.appendChild(circle);
-            bolitas.push({ circle, posX, posY, angle });
+            // Crear el halo para la bacteria
+            // Crear el halo rosa para la bacteria
+            const ring = document.createElement('div');
+            ring.classList.add('pink-ring'); // Cambiado a pink-ring
+            ring.classList.add('ring');
+            ring.style.left = `${posX}px`;
+            ring.style.top = `${posY}px`;
+            container.appendChild(ring); // Añadir el anillo al contenedor
 
-            function updateBolita() {
+            container.appendChild(bacteria);
+            bacterias.push({ bacteria, posX, posY, angle, ring }); // Guardar el anillo junto con la bacteria
+
+            function updateBacteria() {
                 posX += Math.cos(angle) * speed;
                 posY += Math.sin(angle) * speed;
                 const distanceFromCenter = Math.sqrt(Math.pow(posX - container.clientWidth / 2, 2) + Math.pow(posY - container.clientHeight / 2, 2));
 
-                // Verificar si la bolita ha salido del círculo
-                if (distanceFromCenter >= containerRadius - bolitaSize / 2) {
+                // Verificar si la bacteria ha salido del círculo
+                if (distanceFromCenter >= containerRadius - bacteriaSize / 2) {
                     angle = Math.atan2(posY - container.clientHeight / 2, posX - container.clientWidth / 2) + Math.PI + (Math.random() - 0.5) * 0.5;
                 }
 
-                for (let i = 0; i < greenPoints.length; i++) {
-                    const green = greenPoints[i];
-                    const dx = green.posX - posX;
-                    const dy = green.posY - posY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < bolitaSize) {
-                        // Colisión con el punto verde
-                        container.removeChild(green.element);
-                        greenPoints.splice(i, 1);
-                        container.removeChild(circle);
-                        bolitas.splice(bolitas.findIndex(b => b.circle === circle), 1);
-                        
-                        // Crear el halo plateado alrededor de la bolita
-                        const ring = document.createElement('div');
-                        ring.classList.add('ring');
-                        ring.style.left = `${green.posX}px`;
-                        ring.style.top = `${green.posY}px`;
-                        container.appendChild(ring);
+                // Actualizar la posición del halo
+                ring.style.left = `${posX}px`;
+                ring.style.top = `${posY}px`;
 
-                        // Hacer que el anillo se difumine y desaparezca después de 10 segundos
+                for (let i = 0; i < greenPills.length; i++) {
+                    const pill = greenPills[i];
+                    const dx = pill.posX - posX;
+                    const dy = pill.posY - posY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bacteriaSize) {
+                        // Colisión con la pastilla verde
+                        container.removeChild(pill.element);
+                        greenPills.splice(i, 1);
+                        container.removeChild(bacteria);
+                        bacterias.splice(bacterias.findIndex(b => b.bacteria === bacteria), 1);
+                        
+                        // Hacer que el anillo se quede en su posición y se difumine
+                        ring.style.opacity = 1; // Mantener visible
                         setTimeout(() => {
                             ring.style.opacity = 0; // Cambiar la opacidad a 0
                             setTimeout(() => {
@@ -152,77 +206,45 @@
                         }, 0);
 
                         // Generar partículas plateadas en la colisión
-                        generarParticulas(green.posX, green.posY);
+                        generarParticulas(pill.posX, pill.posY);
 
                         break;
                     }
                 }
 
-                circle.style.left = `${posX}px`;
-                circle.style.top = `${posY}px`;
+                bacteria.style.left = `${posX}px`;
+                bacteria.style.top = `${posY}px`;
 
-                // Verifica si la bolita aún está en el contenedor antes de continuar
-                if (container.contains(circle)) {
-                    requestAnimationFrame(updateBolita);
+                // Verifica si la bacteria aún está en el contenedor antes de continuar
+                if (container.contains(bacteria)) {
+                    requestAnimationFrame(updateBacteria);
+                } else {
+                    // Si la bacteria se sale del contenedor, eliminar su anillo
+                    container.removeChild(ring);
                 }
             }
 
-            updateBolita();
+            updateBacteria();
         }
 
-        // Botón para generar 10 bolitas de golpe
-        document.getElementById('generate10').addEventListener('click', () => {
-            for (let i = 0; i < 10; i++) {
-                crearBolita();
-            }
-        });
-
-        // Agregar una nueva bolita cada 5 segundos
-        setInterval(crearBolita, 5000);
-
-        // Función para generar partículas plateadas
-        function generarParticulas(x, y) {
-            const numParticulas = 20;
-            const duracionParticulas = 1000;
-
-            for (let i = 0; i < numParticulas; i++) {
-                const particula = document.createElement('div');
-                particula.classList.add('particle');
-                particula.style.left = `${x}px`;
-                particula.style.top = `${y}px`;
-
-                const angle = Math.random() * 2 * Math.PI;
-                const velocidad = Math.random() * 3 + 1;
-                const dx = Math.cos(angle) * velocidad;
-                const dy = Math.sin(angle) * velocidad;
-
-                container.appendChild(particula);
-
-                setTimeout(() => {
-                    container.removeChild(particula);
-                }, duracionParticulas);
-
-                let particulaX = x;
-                let particulaY = y;
-
-                function moverParticula() {
-                    particulaX += dx;
-                    particulaY += dy;
-                    particula.style.left = `${particulaX}px`;
-                    particula.style.top = `${particulaY}px`;
-
-                    if (particulaX >= 0 && particulaY >= 0 && particulaX <= container.clientWidth && particulaY <= container.clientHeight) {
-                        requestAnimationFrame(moverParticula);
-                    }
-                }
-
-                moverParticula();
-            }
+        // Función para crear una pastilla verde
+        function crearPastillaVerde() {
+            const greenPill = document.createElement('div');
+            greenPill.classList.add('green-pill');
+            const containerRadius = container.clientWidth / 2;
+            let angleRandom = Math.random() * 2 * Math.PI;
+            let radiusRandom = Math.random() * (containerRadius - 15); // Ajustar para que no se genere en el borde
+            let posX = container.clientWidth / 2 + radiusRandom * Math.cos(angleRandom);
+            let posY = container.clientHeight / 2 + radiusRandom * Math.sin(angleRandom);
+            greenPill.style.left = `${posX}px`;
+            greenPill.style.top = `${posY}px`;
+            container.appendChild(greenPill);
+            greenPills.push({ element: greenPill, posX, posY });
         }
 
-        // Función para mover los puntos verdes
-        function moveGreenPoint(greenPoint) {
-            let { posX, posY, angle } = greenPoint;
+         // Función para mover las pastillas verdes
+         function moveGreenPill(greenPill) {
+            let { posX, posY, angle } = greenPill;
 
             const halo = document.createElement('div');
             halo.classList.add('ring');
@@ -230,55 +252,105 @@
             halo.style.top = `${posY}px`;
             container.appendChild(halo);
 
-            function updateGreenPoint() {
+            function updateGreenPill() {
                 posX += Math.cos(angle) * speed;
                 posY += Math.sin(angle) * speed;
                 const distanceFromCenter = Math.sqrt(Math.pow(posX - container.clientWidth / 2, 2) + Math.pow(posY - container.clientHeight / 2, 2));
 
-                if (distanceFromCenter >= (container.clientWidth / 2) - (bolitaSize / 2)) {
+                if (distanceFromCenter >= (container.clientWidth / 2) - (bacteriaSize / 2)) {
                     angle = Math.atan2(posY - container.clientHeight / 2, posX - container.clientWidth / 2) + Math.PI + (Math.random() - 0.5) * 0.5;
                 }
 
-                greenPoint.element.style.left = `${posX}px`;
-                greenPoint.element.style.top = `${posY}px`;
+                greenPill.element.style.left = `${posX}px`;
+                greenPill.element.style.top = `${posY}px`;
 
                 // Actualizar la posición del halo
                 halo.style.left = `${posX}px`;
                 halo.style.top = `${posY}px`;
 
-                if (container.contains(greenPoint.element)) {
-                    greenPoint.posX = posX;
-                    greenPoint.posY = posY;
-                    greenPoint.angle = angle;
-                    requestAnimationFrame(updateGreenPoint);
+                if (container.contains(greenPill.element)) {
+                    greenPill.posX = posX;
+                    greenPill.posY = posY;
+                    greenPill.angle = angle;
+                    requestAnimationFrame(updateGreenPill);
                 } else {
-                    // Eliminar el halo cuando el punto verde sale del contenedor
+                    // Eliminar el halo cuando la pastilla verde sale del contenedor
                     container.removeChild(halo);
                 }
             }
 
-            updateGreenPoint();
+            updateGreenPill();
         }
 
-        // Evento para crear puntos verdes al hacer clic en el contenedor
-        container.addEventListener('click', function(event) {
-            const rect = container.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const clickY = event.clientY - rect.top;
-            const containerRadius = container.clientWidth / 2;
-            const distanceFromCenter = Math.sqrt(Math.pow(clickX - containerRadius, 2) + Math.pow(clickY - containerRadius, 2));
+    // Agregar una nueva bacteria cada 5 segundos
+    crearBacteria();
+    setInterval(crearBacteria, 2000);
 
-            if (distanceFromCenter <= containerRadius) {
-                const greenPoint = document.createElement('div');
-                greenPoint.classList.add('green-point');
-                greenPoint.style.left = `${clickX}px`;
-                greenPoint.style.top = `${clickY}px`;
-                container.appendChild(greenPoint);
+        // Evento para crear pastillas verdes al hacer clic en el contenedor
+    container.addEventListener('click', function(event) {
+        const rect = container.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        const containerRadius = container.clientWidth / 2;
+        const distanceFromCenter = Math.sqrt(Math.pow(clickX - containerRadius, 2) + Math.pow(clickY - containerRadius, 2));
+
+        if (distanceFromCenter <= containerRadius) {
+            // Verificar si hay más pastillas verdes que bacterias
+            if (greenPills.length < bacterias.length) {
+                const greenPill = document.createElement('div');
+                greenPill.classList.add('green-pill');
+                greenPill.style.left = `${clickX}px`;
+                greenPill.style.top = `${clickY}px`;
+                container.appendChild(greenPill);
 
                 const angle = Math.random() * 2 * Math.PI;
-                const newGreenPoint = { element: greenPoint, posX: clickX, posY: clickY, angle };
-                greenPoints.push(newGreenPoint);
-                moveGreenPoint(newGreenPoint); // Mover el nuevo punto verde
+                const newGreenPill = { element: greenPill, posX: clickX, posY: clickY, angle };
+                greenPills.push(newGreenPill);
+                moveGreenPill(newGreenPill); // Mover la nueva pastilla verde
+            } else {
+                mostrarMensajeAdvertencia(); // Mostrar advertencia si se intenta agregar más pastillas
+            }
+        }
+    });
+
+        // Función para generar partículas
+        function generarParticulas(x, y) {
+        for (let i = 0; i < 10; i++) {
+            // Crear partícula plateada
+            const particleSilver = document.createElement('div');
+            particleSilver.classList.add('particle'); // Partícula plateada
+            particleSilver.style.left = `${x}px`;
+            particleSilver.style.top = `${y}px`;
+            container.appendChild(particleSilver);
+            
+            // Crear partícula rosa
+            const particlePink = document.createElement('div');
+            particlePink.classList.add('pink-particle'); // Partícula rosa
+            particlePink.style.left = `${x}px`;
+            particlePink.style.top = `${y}px`;
+            container.appendChild(particlePink);
+
+            // Mover las partículas
+            let angleSilver = Math.random() * 2 * Math.PI;
+            let distanceSilver = Math.random() * 50; // Distancia aleatoria para la plateada
+            particleSilver.style.transform = `translate(${Math.cos(angleSilver) * distanceSilver}px, ${Math.sin(angleSilver) * distanceSilver}px)`;
+
+            let anglePink = Math.random() * 2 * Math.PI;
+            let distancePink = Math.random() * 50; // Distancia aleatoria para la rosa
+            particlePink.style.transform = `translate(${Math.cos(anglePink) * distancePink}px, ${Math.sin(anglePink) * distancePink}px)`;
+
+            // Eliminar partículas después de un tiempo
+            setTimeout(() => {
+                container.removeChild(particleSilver);
+                container.removeChild(particlePink);
+            }, 1000); // Tiempo antes de eliminar las partículas
+        }
+    }
+
+        // Añadir el evento click para generar bacterias
+        document.getElementById('generate10').addEventListener('click', () => {
+            for (let i = 0; i < 10; i++) {
+                crearBacteria();
             }
         });
     </script>
