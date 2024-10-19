@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolitas y Puntos Verdes</title>
+    <style>
+        body {
+            background-color: #00a99d; /* Color azulito para el fondo fuera del círculo */
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #container {
+            position: relative;
+            width: 80vmin; /* Tamaño del contenedor */
+            height: 80vmin; /* Tamaño del contenedor */
+            border-radius: 50%;
+            border: 5px solid black; /* Borde negro para el círculo */
+            background-color: #808080; /* Fondo gris para el círculo */
+            overflow: hidden; /* Para ocultar lo que sale del círculo */
+        }
+
+        .circle {
+            position: absolute;
+            width: 50px; /* Ajusta el tamaño según lo necesites */
+            height: 50px; /* Ajusta el tamaño según lo necesites */
+            background: url('../bacteria.png') no-repeat center center; /* Ruta al archivo SVG en la carpeta padre */
+            background-size: contain; /* Ajusta el tamaño del SVG al contenedor */
+            transform: translate(-50%, -50%);
+            z-index: 2; /* Asegurarse de que las bolitas estén por encima del fondo */
+        }
+
+        .ring {
+            position: absolute;
+            width: 40px; /* Tamaño del halo plateado */
+            height: 40px; /* Tamaño del halo plateado */
+            border: 2px solid silver; /* Color del halo */
+            background-color: transparent;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 10s ease-in-out; /* Transición para el desvanecimiento */
+            opacity: 1; /* Comenzar completamente visible */
+            z-index: 2; /* Asegurarse de que el anillo esté por encima del fondo */
+        }
+
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: silver;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: 3; /* Asegurarse de que las partículas estén por encima del fondo */
+        }
+
+        #generate10 {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #cbccca; /* Fondo del botón en gris */
+            color: #333; /* Color del texto en un tono oscuro para contraste */
+            border: none;
+            cursor: pointer;
+            border-radius: 5px; /* Añadido para un aspecto más suave */
+            transition: background-color 0.3s; /* Transición suave para el color */
+            z-index: 4; /* Asegurarse de que el botón esté por encima de todo */
+        }
+
+        #generate10:hover {
+            background-color: #b0b0b0; /* Un tono más oscuro para el efecto hover */
+        }
+
+        .green-point {
+            position: absolute;
+            width: 30px; /* Tamaño de los puntos verdes */
+            height: 30px; /* Tamaño de los puntos verdes */
+            background: url('../Argentum_v00.svg') no-repeat center center; /* Ruta al archivo SVG en la carpeta padre */
+            background-size: contain; /* Ajusta el tamaño del SVG al contenedor */
+            transform: translate(-50%, -50%);
+            z-index: 2; /* Asegurarse de que los puntos verdes estén por encima del fondo */
+        }
+    </style>
+</head>
+<body>
+    <button id="generate10">¡Ataque bacteriano!</button>
+    <div id="container"></div>
+
+    <script>
+        const container = document.getElementById('container');
+        const maxBolitas = 15;
+        const bolitas = [];
+        const greenPoints = [];
+        const bolitaSize = 50; // Tamaño de las bolitas (50px)
+        const speed = 2;
+
+        // Función para crear una bolita
+        function crearBolita() {
+            if (bolitas.length >= maxBolitas) return;
+
+            const circle = document.createElement('div');
+            circle.classList.add('circle');
+            const containerRadius = container.clientWidth / 2;
+            let angleRandom = Math.random() * 2 * Math.PI;
+            let radiusRandom = Math.random() * (containerRadius - bolitaSize / 2);
+            let posX = container.clientWidth / 2 + radiusRandom * Math.cos(angleRandom);
+            let posY = container.clientHeight / 2 + radiusRandom * Math.sin(angleRandom);
+            let angle = Math.random() * 2 * Math.PI;
+
+            container.appendChild(circle);
+            bolitas.push({ circle, posX, posY, angle });
+
+            function updateBolita() {
+                posX += Math.cos(angle) * speed;
+                posY += Math.sin(angle) * speed;
+                const distanceFromCenter = Math.sqrt(Math.pow(posX - container.clientWidth / 2, 2) + Math.pow(posY - container.clientHeight / 2, 2));
+
+                // Verificar si la bolita ha salido del círculo
+                if (distanceFromCenter >= containerRadius - bolitaSize / 2) {
+                    angle = Math.atan2(posY - container.clientHeight / 2, posX - container.clientWidth / 2) + Math.PI + (Math.random() - 0.5) * 0.5;
+                }
+
+                for (let i = 0; i < greenPoints.length; i++) {
+                    const green = greenPoints[i];
+                    const dx = green.posX - posX;
+                    const dy = green.posY - posY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bolitaSize) {
+                        // Colisión con el punto verde
+                        container.removeChild(green.element);
+                        greenPoints.splice(i, 1);
+                        container.removeChild(circle);
+                        bolitas.splice(bolitas.findIndex(b => b.circle === circle), 1);
+                        
+                        // Crear el halo plateado alrededor de la bolita
+                        const ring = document.createElement('div');
+                        ring.classList.add('ring');
+                        ring.style.left = `${green.posX}px`;
+                        ring.style.top = `${green.posY}px`;
+                        container.appendChild(ring);
+
+                        // Hacer que el anillo se difumine y desaparezca después de 10 segundos
+                        setTimeout(() => {
+                            ring.style.opacity = 0; // Cambiar la opacidad a 0
+                            setTimeout(() => {
+                                container.removeChild(ring); // Eliminar el anillo del DOM después de que se haya desvanecido
+                            }, 10000); // Tiempo para esperar antes de eliminar el anillo
+                        }, 0);
+
+                        // Generar partículas plateadas en la colisión
+                        generarParticulas(green.posX, green.posY);
+
+                        break;
+                    }
+                }
+
+                circle.style.left = `${posX}px`;
+                circle.style.top = `${posY}px`;
+
+                // Verifica si la bolita aún está en el contenedor antes de continuar
+                if (container.contains(circle)) {
+                    requestAnimationFrame(updateBolita);
+                }
+            }
+
+            updateBolita();
+        }
+
+        // Botón para generar 10 bolitas de golpe
+        document.getElementById('generate10').addEventListener('click', () => {
+            for (let i = 0; i < 10; i++) {
+                crearBolita();
+            }
+        });
+
+        // Agregar una nueva bolita cada 5 segundos
+        setInterval(crearBolita, 5000);
+
+        // Función para generar partículas plateadas
+        function generarParticulas(x, y) {
+            const numParticulas = 20;
+            const duracionParticulas = 1000;
+
+            for (let i = 0; i < numParticulas; i++) {
+                const particula = document.createElement('div');
+                particula.classList.add('particle');
+                particula.style.left = `${x}px`;
+                particula.style.top = `${y}px`;
+
+                const angle = Math.random() * 2 * Math.PI;
+                const velocidad = Math.random() * 3 + 1;
+                const dx = Math.cos(angle) * velocidad;
+                const dy = Math.sin(angle) * velocidad;
+
+                container.appendChild(particula);
+
+                setTimeout(() => {
+                    container.removeChild(particula);
+                }, duracionParticulas);
+
+                let particulaX = x;
+                let particulaY = y;
+
+                function moverParticula() {
+                    particulaX += dx;
+                    particulaY += dy;
+                    particula.style.left = `${particulaX}px`;
+                    particula.style.top = `${particulaY}px`;
+
+                    if (particulaX >= 0 && particulaY >= 0 && particulaX <= container.clientWidth && particulaY <= container.clientHeight) {
+                        requestAnimationFrame(moverParticula);
+                    }
+                }
+
+                moverParticula();
+            }
+        }
+
+        // Función para mover los puntos verdes
+        function moveGreenPoint(greenPoint) {
+            let { posX, posY, angle } = greenPoint;
+
+            const halo = document.createElement('div');
+            halo.classList.add('ring');
+            halo.style.left = `${posX}px`;
+            halo.style.top = `${posY}px`;
+            container.appendChild(halo);
+
+            function updateGreenPoint() {
+                posX += Math.cos(angle) * speed;
+                posY += Math.sin(angle) * speed;
+                const distanceFromCenter = Math.sqrt(Math.pow(posX - container.clientWidth / 2, 2) + Math.pow(posY - container.clientHeight / 2, 2));
+
+                if (distanceFromCenter >= (container.clientWidth / 2) - (bolitaSize / 2)) {
+                    angle = Math.atan2(posY - container.clientHeight / 2, posX - container.clientWidth / 2) + Math.PI + (Math.random() - 0.5) * 0.5;
+                }
+
+                greenPoint.element.style.left = `${posX}px`;
+                greenPoint.element.style.top = `${posY}px`;
+
+                // Actualizar la posición del halo
+                halo.style.left = `${posX}px`;
+                halo.style.top = `${posY}px`;
+
+                if (container.contains(greenPoint.element)) {
+                    greenPoint.posX = posX;
+                    greenPoint.posY = posY;
+                    greenPoint.angle = angle;
+                    requestAnimationFrame(updateGreenPoint);
+                } else {
+                    // Eliminar el halo cuando el punto verde sale del contenedor
+                    container.removeChild(halo);
+                }
+            }
+
+            updateGreenPoint();
+        }
+
+        // Evento para crear puntos verdes al hacer clic en el contenedor
+        container.addEventListener('click', function(event) {
+            const rect = container.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+            const containerRadius = container.clientWidth / 2;
+            const distanceFromCenter = Math.sqrt(Math.pow(clickX - containerRadius, 2) + Math.pow(clickY - containerRadius, 2));
+
+            if (distanceFromCenter <= containerRadius) {
+                const greenPoint = document.createElement('div');
+                greenPoint.classList.add('green-point');
+                greenPoint.style.left = `${clickX}px`;
+                greenPoint.style.top = `${clickY}px`;
+                container.appendChild(greenPoint);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const newGreenPoint = { element: greenPoint, posX: clickX, posY: clickY, angle };
+                greenPoints.push(newGreenPoint);
+                moveGreenPoint(newGreenPoint); // Mover el nuevo punto verde
+            }
+        });
+    </script>
+</body>
+</html>
